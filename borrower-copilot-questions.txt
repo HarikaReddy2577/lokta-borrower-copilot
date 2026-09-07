@@ -1,0 +1,47 @@
+BORROWER COPILOT - QUESTION LIST
+=================================
+
+MUST QUESTIONS (ask every borrower - 8 to 10)
+----------------------------------------------
+1. What do you want the loan for? (wedding / business / vehicle / home / education / medical / other)
+2. How much do you want to borrow? (amount in rupees)
+3. What is your employment type? (salaried / self-employed with ITR / self-employed cash-only / gig or informal work)
+4. What is your net monthly income (take-home, after tax)?
+5. Do you currently have any other loan EMIs? If yes, what is the total monthly amount?
+6. What are your average monthly household expenses (rent, food, bills, etc.)?
+7. What is your age?
+8. Do you know your credit score? If yes, what is it? ("I don't know" must be a valid answer, never treated as a bad score)
+9. How long have you had your current job or business? (rough number of years)
+10. Do you have anyone who could co-apply with you (spouse, family), and if so, what is their income?
+
+ADDITIONAL QUESTIONS (ask only when relevant to this borrower - each one must move a number)
+-----------------------------------------------------------------------------------------------
+- Has your income been steady over the last 12 months, or does it vary a lot month to month?
+  -> Narrows the interest rate band and the safe EMI number.
+
+- (If self-employed/informal) What share of your income is unpredictable month to month?
+  -> Widens or narrows the maximum loan amount.
+
+- What type are your existing loans (car, personal, credit card) and how many months are left on them?
+  -> Makes the affordability calculation exact instead of a rough guess.
+
+- What percentage of your credit card limit do you usually use?
+  -> Used as a stand-in for credit score when the score is unknown.
+
+- Have you missed or been late on any EMI payment in the last year?
+  -> Can change the verdict toward "Don't borrow" or "Borrow less."
+
+- How many months of expenses do you currently have saved as emergency savings?
+  -> Changes the safety buffer used in the EMI ceiling and the stress test.
+
+- Do you own property, gold, or another asset you could offer as security, and roughly what is it worth?
+  -> Can move the borrower from an unsecured product (personal loan) to a secured one (loan against property/gold), which usually means a much lower rate and higher amount.
+
+- Do you have any large expense coming up in the next year (medical, school fees, etc.)?
+  -> Lowers the EMI ceiling.
+
+- (If the loan is for a business) How much extra income do you expect this loan to help you earn?
+  -> Can justify a "Borrow" verdict even when the ratios are otherwise tight.
+
+- Have you already been quoted a rate or EMI by any lender?
+  -> Goes directly into the Negotiation Card as the number to compare against.

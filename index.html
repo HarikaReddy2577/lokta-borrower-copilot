@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Borrower Copilot</title>
+<style>
+  html{background: linear-gradient(135deg, #f3eef1 0%, #e0cddb 100%); min-height:100vh; margin:0;}
+  body{font-family: Arial, sans-serif; max-width:700px; margin:30px auto; padding:30px; background:#ffffff; color:#222; border-radius:14px; box-shadow:0 10px 40px rgba(75,36,64,0.18);}
+  h1{color:#4b2440;}
+  label{display:block; margin-top:14px; font-weight:600;}
+  input, select{width:100%; padding:8px; margin-top:4px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px;}
+  .hidden{display:none;}
+  button{margin-top:24px; padding:10px 20px; background:#4b2440; color:#fff; border:none; border-radius:4px; font-size:16px; cursor:pointer;}
+  #results{margin-top:30px; padding:20px; background:#efe3ea; border-radius:6px;}
+  .out{margin-bottom:16px;}
+  .out h3{margin:0 0 6px 0; color:#4b2440;}
+  .why{font-size:0.9em; color:#555;}
+  #negCard{margin-top:20px; padding:16px; background:#fff; border:2px solid #4b2440; border-radius:6px;}
+</style>
+</head>
+<body>
+
+<h1>Borrower Copilot</h1>
+<p>Answer what you can. Unanswered questions just widen the ranges below &mdash; they never get treated as zero.</p>
+
+<form id="borrowerForm">
+
+  <label>Borrower's name
+    <input type="text" id="borrowerName" placeholder="e.g. Priya">
+  </label>
+
+  <label>What is the loan for?
+    <select id="purpose">
+      <option value="wedding">Wedding</option>
+      <option value="business">Business</option>
+      <option value="vehicle">Vehicle</option>
+      <option value="home">Home</option>
+      <option value="education">Education</option>
+      <option value="medical">Medical</option>
+      <option value="other">Other</option>
+    </select>
+  </label>
+
+  <label>How much do you want to borrow? (Rs)
+    <input type="number" id="amount" min="0">
+  </label>
+
+  <label>Employment type
+    <select id="employmentType">
+      <option value="salaried">Salaried</option>
+      <option value="self_employed_itr">Self-employed (has ITR / tax return)</option>
+      <option value="self_employed_cash">Self-employed (cash income, no ITR)</option>
+      <option value="informal">Informal / gig work</option>
+    </select>
+  </label>
+
+  <label>Net monthly income (take-home, Rs)
+    <input type="number" id="netIncome" min="0">
+  </label>
+
+  <label>Total existing monthly EMI (Rs) &mdash; put 0 if none
+    <input type="number" id="existingEMI" min="0" value="0">
+  </label>
+
+  <label>Average monthly household expenses (Rs)
+    <input type="number" id="expenses" min="0">
+  </label>
+
+  <label>Your age
+    <input type="number" id="age" min="18">
+  </label>
+
+  <label>Do you know your credit score?
+    <select id="creditScoreKnown">
+      <option value="no">No / not sure</option>
+      <option value="yes">Yes</option>
+    </select>
+  </label>
+
+  <label id="creditScoreWrap" class="hidden">Your credit score
+    <input type="number" id="creditScore" min="300" max="900">
+  </label>
+
+  <label>How many years in this job / business?
+    <input type="number" id="yearsInJob" min="0">
+  </label>
+
+  <hr>
+  <p><b>Optional &mdash; the more you answer, the tighter your numbers get:</b></p>
+
+  <label>Co-applicant's monthly income, if any (Rs)
+    <input type="number" id="coApplicantIncome" min="0" value="0">
+  </label>
+
+  <label id="stableWrap" class="hidden">Has your income been steady for the last 12 months?
+    <select id="incomeStable">
+      <option value="unknown">Not sure / skip</option>
+      <option value="yes">Yes, steady</option>
+      <option value="no">No, it varies a lot</option>
+    </select>
+  </label>
+
+  <label id="cardUtilWrap" class="hidden">What % of your credit card limit do you usually use?
+    <input type="number" id="cardUtilization" min="0" max="100">
+  </label>
+
+  <label>Have you missed or been late on an EMI in the last year?
+    <select id="missedPayment">
+      <option value="unknown">Not sure / skip</option>
+      <option value="no">No</option>
+      <option value="yes">Yes</option>
+    </select>
+  </label>
+
+  <label>Do you have any high-interest debt (e.g. app loans, 25%+ interest)?
+    <select id="highCostDebt">
+      <option value="unknown">Not sure / skip</option>
+      <option value="no">No</option>
+      <option value="yes">Yes</option>
+    </select>
+  </label>
+
+  <label>Emergency savings &mdash; how many months of expenses do you have saved?
+    <input type="number" id="emergencySavings" min="0">
+  </label>
+
+  <label>Value of any property/gold/asset you could offer as security (Rs) &mdash; put 0 if none
+    <input type="number" id="collateralValue" min="0" value="0">
+  </label>
+
+  <label>Any large expense coming up in the next year (Rs)? Put 0 if none.
+    <input type="number" id="upcomingExpense" min="0" value="0">
+  </label>
+
+  <label id="loanEarnWrap" class="hidden">If this is for business, how much extra monthly income do you expect it to generate (Rs)?
+    <input type="number" id="loanWillEarn" min="0" value="0">
+  </label>
+
+  <label>Has any lender already quoted you a rate? (%, optional)
+    <input type="number" id="existingOfferRate" min="0" step="0.1">
+  </label>
+
+  <button type="button" onclick="calculate()">Get my numbers</button>
+</form>
+
+<div id="results" class="hidden"></div>
+
+<script>
+document.getElementById('employmentType').addEventListener('change', function(){
+  document.getElementById('stableWrap').classList.toggle('hidden', this.value==='salaried');
+});
+document.getElementById('creditScoreKnown').addEventListener('change', function(){
+  var known = this.value === 'yes';
+  document.getElementById('creditScoreWrap').classList.toggle('hidden', !known);
+  document.getElementById('cardUtilWrap').classList.toggle('hidden', known);
+});
+document.getElementById('purpose').addEventListener('change', function(){
+  document.getElementById('loanEarnWrap').classList.toggle('hidden', this.value!=='business');
+});
+
+function num(id){ var v=document.getElementById(id).value; return v===''? null : parseFloat(v); }
+function sel(id){ return document.getElementById(id).value; }
+
+function foirCaps(employmentType){
+  switch(employmentType){
+    case 'salaried': return {lenderCap:0.50, safeCap:0.375};
+    case 'self_employed_itr': return {lenderCap:0.40, safeCap:0.30};
+    case 'self_employed_cash': return {lenderCap:0.30, safeCap:0.25};
+    case 'informal': return {lenderCap:0.30, safeCap:0.25};
+    default: return {lenderCap:0.30, safeCap:0.25};
+  }
+}
+
+function rateBand(creditScoreKnown, creditScore, secured){
+  if(secured) return [9, 12];
+  if(!creditScoreKnown) return [17, 22];
+  if(creditScore >= 750) return [10.5, 13];
+  if(creditScore >= 650) return [13, 17];
+  return [17, 22];
+}
+
+function principalFromEMI(emi, annualRatePct, tenureMonths){
+  var r = annualRatePct/12/100;
+  if(r===0) return emi*tenureMonths;
+  return emi * (Math.pow(1+r,tenureMonths)-1) / (r*Math.pow(1+r,tenureMonths));
+}
+
+function calculate(){
+  var borrowerName = document.getElementById('borrowerName').value || 'Borrower';
+  var amountWanted = num('amount') || 0;
+  var employmentType = sel('employmentType');
+  var income = num('netIncome') || 0;
+  var existingEMI = num('existingEMI') || 0;
+  var expenses = num('expenses') || 0;
+  var creditScoreKnown = sel('creditScoreKnown') === 'yes';
+  var creditScore = num('creditScore');
+  var coApplicantIncome = num('coApplicantIncome') || 0;
+  var incomeStable = sel('incomeStable');
+  var cardUtilization = num('cardUtilization');
+  var missedPayment = sel('missedPayment');
+  var highCostDebt = sel('highCostDebt');
+  var emergencySavings = num('emergencySavings');
+  var collateralValue = num('collateralValue') || 0;
+  var existingOfferRate = num('existingOfferRate');
+
+  var totalIncome = income + coApplicantIncome;
+
+  var optionalAnswered = [creditScoreKnown, incomeStable!=='unknown', missedPayment!=='unknown',
+    highCostDebt!=='unknown', emergencySavings!==null, collateralValue>0, cardUtilization!==null]
+    .filter(Boolean).length;
+  var confidence = optionalAnswered >= 5 ? 'High' : optionalAnswered >= 2 ? 'Medium' : 'Low';
+  var widen = confidence==='Low' ? 1.5 : confidence==='Medium' ? 1.2 : 1.0;
+
+  var secured = collateralValue >= 2*amountWanted && amountWanted>0 &&
+                (employmentType==='self_employed_cash' || employmentType==='informal' || !creditScoreKnown);
+
+  var caps = foirCaps(employmentType);
+  var tenureMonths = secured ? 180 : 60;
+
+  var lenderCapacityEMI = Math.max(0, totalIncome*caps.lenderCap - existingEMI);
+  var safeCapacityEMI = Math.max(0, Math.min(totalIncome*caps.safeCap - existingEMI, totalIncome - expenses - existingEMI));
+
+  var band = rateBand(creditScoreKnown, creditScore, secured);
+  var midRate = (band[0]+band[1])/2;
+
+  var lenderMaxAmount = principalFromEMI(lenderCapacityEMI, midRate, tenureMonths);
+  var safeMaxAmount = principalFromEMI(safeCapacityEMI, midRate, tenureMonths);
+
+  var lenderMaxAmountRange = [lenderMaxAmount/widen, lenderMaxAmount];
+  var safeMaxAmountRange = [safeMaxAmount/widen, safeMaxAmount];
+
+  var verdict, verdictWhy;
+  if(highCostDebt==='yes' && missedPayment==='yes'){
+    verdict = "Don't borrow more";
+    verdictWhy = "You already have high-interest debt and a missed payment. Clear the existing debt before adding a new loan.";
+  } else if(safeCapacityEMI <= 0){
+    verdict = "Don't borrow";
+    verdictWhy = "After expenses and existing EMIs, there is no safe room in your income for a new EMI right now.";
+  } else if(amountWanted > safeMaxAmount && amountWanted>0){
+    verdict = "Borrow less";
+    verdictWhy = "Rs " + Math.round(amountWanted).toLocaleString('en-IN') + " would push your EMI past what's safe. Rs " +
+      Math.round(safeMaxAmount).toLocaleString('en-IN') + " is closer to what you can safely carry.";
+  } else {
+    verdict = "Borrow";
+    verdictWhy = "The amount you want fits within a safe share of your income, given your expenses and existing EMIs.";
+  }
+
+  var processingFeePct = 1.5;
+  var tenureYears = tenureMonths/12;
+  var aprLow = (band[0] + processingFeePct/tenureYears).toFixed(1);
+  var aprHigh = (band[1] + processingFeePct/tenureYears).toFixed(1);
+
+  var emiCeiling = safeCapacityEMI;
+  var stressIncome = totalIncome*0.8;
+  var stressRate = midRate + 2;
+  var stressSafeCapacity = Math.max(0, Math.min(stressIncome*caps.safeCap - existingEMI, stressIncome - expenses - existingEMI));
+  var stressOK = stressSafeCapacity >= emiCeiling*0.9;
+
+  var negText = "Fair rate for " + borrowerName + "'s profile: " + band[0] + "% - " + band[1] + "% (all-in APR " + aprLow + "% - " + aprHigh + "%). " +
+    "Safe amount to borrow: up to Rs " + Math.round(safeMaxAmount).toLocaleString('en-IN') + ". " +
+    "Monthly EMI ceiling: Rs " + Math.round(emiCeiling).toLocaleString('en-IN') + ".";
+  if(existingOfferRate){
+    negText += " Lender quoted you " + existingOfferRate + "% &mdash; " +
+      (existingOfferRate > band[1] ? "that is above fair range, worth negotiating down." : "that is within/near fair range.");
+  }
+
+  var html = '<h2>Results for ' + borrowerName + '</h2>';
+  html += '<div class="out"><h3>1. Verdict: ' + verdict + '</h3><div class="why">' + verdictWhy + '</div></div>';
+  html += '<div class="out"><h3>2. Maximum amount (confidence: ' + confidence + ')</h3>' +
+    '<div>Lender likely sanctions: Rs ' + Math.round(lenderMaxAmountRange[0]).toLocaleString('en-IN') + ' - Rs ' + Math.round(lenderMaxAmountRange[1]).toLocaleString('en-IN') + '</div>' +
+    '<div>You can safely carry: Rs ' + Math.round(safeMaxAmountRange[0]).toLocaleString('en-IN') + ' - Rs ' + Math.round(safeMaxAmountRange[1]).toLocaleString('en-IN') + '</div>' +
+    '<div class="why">Use the safe number, not the lender number.</div></div>';
+  html += '<div class="out"><h3>3. Fair interest rate</h3>' +
+    '<div>Rate band: ' + band[0] + '% - ' + band[1] + '%' + (secured ? ' (secured product)' : '') + '</div>' +
+    '<div>All-in APR (incl. ~1.5% processing fee): ' + aprLow + '% - ' + aprHigh + '%</div></div>';
+  html += '<div class="out"><h3>4. EMI ceiling</h3>' +
+    '<div>Do not exceed roughly Rs ' + Math.round(emiCeiling).toLocaleString('en-IN') + ' / month.</div>' +
+    '<div class="why">Stress test (income -20%, rate +2 pts): ' + (stressOK ? 'This EMI still roughly holds up.' : 'This EMI would likely become unaffordable.') + '</div></div>';
+  html += '<div id="negCard"><h3>Negotiation Card</h3><div>' + negText + '</div></div>';
+
+  document.getElementById('results').innerHTML = html;
+  document.getElementById('results').classList.remove('hidden');
+}
+</script>
+
+</body>
+</html>
